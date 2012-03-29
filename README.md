@@ -27,4 +27,11 @@ Usage
 On application start, the log will be retrived and displayed. You can scroll to view
 the log and tap to view applicable actions.
 
+Copyright and License
+---------------------
+
+Copyright 2012 Neil Loknath
+
+[Apache licensed](http://www.apache.org/licenses/LICENSE-2.0)
+
 Enjoy!
