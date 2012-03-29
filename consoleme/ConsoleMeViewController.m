@@ -20,6 +20,7 @@
 
 #import "ConsoleMeViewController.h"
 #import "NLOSyslog.h"
+#import <QuartzCore/QuartzCore.h>
 
 @interface ConsoleMeViewController ()
 
@@ -52,7 +53,7 @@
 @end
 
 static const int kMaxMinutes = 30;  // default to 30 min
-static const int kMaxLines = 125;
+static const int kMaxLines = 125;   // number through trial and error that allows the simulator to behave
 
 @implementation ConsoleMeViewController
 
@@ -169,11 +170,16 @@ static const int kMaxLines = 125;
 
 -(UIButton *)addActionButtonWithFrame:(CGRect)frame {
     UIButton* button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.backgroundColor = [UIColor colorWithRed:0 green:0 blue:1 alpha:0.5];
+
+    button.layer.borderWidth = 1;
+    button.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.5].CGColor;
+    button.layer.cornerRadius = 4;
+    
+    button.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
     button.showsTouchWhenHighlighted = YES;
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [button setTitleShadowColor:[UIColor blackColor] forState:UIControlStateNormal];
-    button.titleLabel.font = [UIFont fontWithName:@"Courier-Bold" size:18];
+    button.titleLabel.font = [UIFont fontWithName:@"ArialRoundedMTBold" size:18];
     button.frame = frame;
     
     [self.view addSubview:button];
@@ -195,7 +201,7 @@ static const int kMaxLines = 125;
 
 -(void)showRefreshButton {
     float width = self.view.bounds.size.width / 2;
-    _refresh = [self addActionButtonWithFrame:CGRectMake(width + 1, -40, width - 1, 40)];
+    _refresh = [self addActionButtonWithFrame:CGRectMake(width, -40, width - 2, 40)];
     _refresh.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin;
     [_refresh setTitle:@"Refresh" forState:UIControlStateNormal];
     [_refresh addTarget:self action:@selector(didTapRefreshButton:) forControlEvents:UIControlEventTouchUpInside];    
@@ -218,7 +224,7 @@ static const int kMaxLines = 125;
 }
 
 -(void)showEmailButton {
-    _email = [self addActionButtonWithFrame:CGRectMake(0, -40, self.view.bounds.size.width / 2 - 1, 40)];
+    _email = [self addActionButtonWithFrame:CGRectMake(1, -40, self.view.bounds.size.width / 2 - 2, 40)];
     
     _email.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
     [_email setTitle:@"Email" forState:UIControlStateNormal];
