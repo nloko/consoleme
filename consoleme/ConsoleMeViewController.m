@@ -54,6 +54,7 @@
 
 static const int kMaxMinutes = 30;  // default to 30 min
 static const int kMaxLines = 125;   // number through trial and error that allows the simulator to behave
+static const int kButtonHeight = 40;
 
 @implementation ConsoleMeViewController
 
@@ -172,7 +173,7 @@ static const int kMaxLines = 125;   // number through trial and error that allow
     UIButton* button = [UIButton buttonWithType:UIButtonTypeCustom];
 
     button.layer.borderWidth = 1;
-    button.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.5].CGColor;
+    button.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.75].CGColor;
     button.layer.cornerRadius = 4;
     
     button.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
@@ -201,7 +202,11 @@ static const int kMaxLines = 125;   // number through trial and error that allow
 
 -(void)showRefreshButton {
     float width = self.view.bounds.size.width / 2;
-    _refresh = [self addActionButtonWithFrame:CGRectMake(width, -40, width - 2, 40)];
+    _refresh = [self addActionButtonWithFrame:CGRectMake(width + 1,
+                                                         -kButtonHeight, 
+                                                         width - 2, 
+                                                         kButtonHeight)];
+    
     _refresh.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin;
     [_refresh setTitle:@"Refresh" forState:UIControlStateNormal];
     [_refresh addTarget:self action:@selector(didTapRefreshButton:) forControlEvents:UIControlEventTouchUpInside];    
@@ -224,7 +229,10 @@ static const int kMaxLines = 125;   // number through trial and error that allow
 }
 
 -(void)showEmailButton {
-    _email = [self addActionButtonWithFrame:CGRectMake(1, -40, self.view.bounds.size.width / 2 - 2, 40)];
+    _email = [self addActionButtonWithFrame:CGRectMake(1, 
+                                                       -kButtonHeight, 
+                                                       self.view.bounds.size.width / 2 - 2, 
+                                                       kButtonHeight)];
     
     _email.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
     [_email setTitle:@"Email" forState:UIControlStateNormal];
