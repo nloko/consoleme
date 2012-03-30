@@ -3,6 +3,11 @@ consoleme
 
 View the system log on any iOS device running OS version 4.x and up.
 
+Dependancies
+------------
+
+- [NLOSyslog] (https://github.com/nloko/NLOSyslog) *source is bundled*
+ 
 Details
 -------
 
