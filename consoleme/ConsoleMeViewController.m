@@ -258,20 +258,19 @@ static const int kMaxLines = 125;   // number through trial and error that allow
 -(void)processLog:(NSArray *)log {
     NSMutableString* logString = [[NSMutableString alloc] init];
     
-    int lines = 0;
+    // Simulator goes bonkers if we add too many lines to the view
+    // Adjust the lower bound so we truncate older entries
+    //
+    const int numberOfEntries = [log count];
+    int start = MAX(0, numberOfEntries - kMaxLines);
     
-    for (id entry in log) {
+    for (int i = start; i < numberOfEntries; i++) {
+        id entry = [log objectAtIndex:i];
         [logString appendString:entry];
         [logString appendString:@"\r\n"];
-        lines++;
-        
-        // Simulator goes bonkers if we add too many lines to the view
-        //
-        if (lines == kMaxLines) break;
     }
     
-    NSLog(@"Processed %i messages", [log count]);
-    
+    NSLog(@"Processed %i messages", numberOfEntries - start);
     [self setLogViewText:logString];
     [self hideLoading];
     
