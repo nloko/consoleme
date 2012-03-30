@@ -337,17 +337,15 @@ static const int kMaxLines = 125;   // number through trial and error that allow
     NSString* appName = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleDisplayName"];    
     [picker setSubject:[NSString stringWithFormat:@"E-mail from %@", appName]];
     
-    // Set up the recipients.
     NSArray *toRecipients = [NSArray arrayWithObjects:[self email],
                              nil];
     
     [picker setToRecipients:toRecipients];
     
-    NSData *myData = [_logView.text dataUsingEncoding:NSUTF8StringEncoding];
-    [picker addAttachmentData:myData mimeType:@"text/plain"
+    NSData *logData = [_logView.text dataUsingEncoding:NSUTF8StringEncoding];
+    [picker addAttachmentData:logData mimeType:@"text/plain"
                      fileName:@"log"];
     
-    // Fill out the email body text.
     NSString *emailBody = @"Please see attached for a snapshot of the system log from my device.\r\n \
     \r\n \
     Here's some more info: \r\n \
@@ -364,9 +362,8 @@ static const int kMaxLines = 125;   // number through trial and error that allow
                             [[UIDevice currentDevice] systemVersion]]
                                                isHTML:NO];
     
-    // Present the mail composition interface.
     [self presentModalViewController:picker animated:YES];
-    [picker release]; // Can safely release the controller now.
+    [picker release];
 }
 
 - (void)mailComposeController:(MFMailComposeViewController *)controller
