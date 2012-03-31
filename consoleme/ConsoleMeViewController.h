@@ -27,8 +27,7 @@
     UIScrollView* _contentView;
     UILabel* _logView;
     
-    UIButton* _email;
-    UIButton* _refresh;
+    UIView* _buttons;
 }
 
 @end

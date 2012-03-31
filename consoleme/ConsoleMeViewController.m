@@ -24,8 +24,6 @@
 
 @interface ConsoleMeViewController ()
 
--(NSString*)email;
-
 -(void)showLoading;
 -(void)hideLoading;
 -(void)setLogViewText:(NSString*)text;
@@ -35,20 +33,20 @@
 
 -(void)didTapLog:(UITapGestureRecognizer*)recognizer;
 
+-(CGFloat)buttonWidth;
 -(void)toggleButtons;
 -(UIButton*)addActionButtonWithFrame:(CGRect)frame;
+-(void)showButtons;
+-(void)hideButtons;
 
 -(void)didTapEmailButton:(UIButton*)button;
--(void)showEmailButton;
--(void)hideEmailButton;
--(void)toggleEmailButton;
-
 -(void)didTapRefreshButton:(UIButton*)button;
 -(void)showRefreshButton;
--(void)hideRefreshButton;
--(void)toggleRefreshButton;
 
+-(NSString*)email;
 -(void)displayComposerSheet;
+
+-(void)willEnterForeground:(NSNotification*)notification;
 
 @end
 
@@ -109,14 +107,20 @@ static const int kButtonHeight = 40;
     [_logView release];
     
     [self updateLog];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self 
+                                             selector:@selector(willEnterForeground:) 
+                                                 name:UIApplicationWillEnterForegroundNotification 
+                                               object:nil];
 }
 
 -(void)viewDidUnload {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    
     _contentView = nil;
     _logView = nil;
     _loadingView = nil;
-    _email = nil;
-    _refresh = nil;
+    _buttons = nil;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -137,6 +141,14 @@ static const int kButtonHeight = 40;
 }
 
 #pragma mark
+#pragma mark Application Observers
+
+-(void)willEnterForeground:(NSNotification *)notification {
+    [self hideButtons];
+    [self updateLog];
+}
+
+#pragma mark
 #pragma mark Gestures
 
 -(void)didTapLog:(UITapGestureRecognizer *)recognizer {
@@ -146,27 +158,51 @@ static const int kButtonHeight = 40;
 #pragma mark
 #pragma mark Buttons
 
--(void)toggleButtons {
-    [self toggleEmailButton];
-    [self toggleRefreshButton]; 
+-(CGFloat)buttonWidth {
+    return self.view.bounds.size.width / 2;
 }
 
--(void)toggleEmailButton {
-    if (_email) {
-        [self hideEmailButton];
+
+-(void)toggleButtons {
+    if (_buttons) {
+        [self hideButtons];
         return;
     }
+    
+    [self showButtons];
+}
+
+-(void)showButtons {
+    _buttons = [[UIView alloc] initWithFrame:CGRectMake(0, 
+                                                        -kButtonHeight, 
+                                                        self.view.bounds.size.width, 
+                                                        kButtonHeight)];
+    
+    _buttons.backgroundColor = [UIColor clearColor];
+    [self.view addSubview:_buttons];
+    [_buttons release];
     
     [self showEmailButton];
+    [self showRefreshButton];
+    
+    [self.view bringSubviewToFront:_buttons];
+    
+    [UIView animateWithDuration:0.2 animations:^(void) {
+        CGRect frame = _buttons.frame;
+        frame.origin.y = 0;
+        _buttons.frame = frame;
+    }];
 }
 
--(void)toggleRefreshButton {
-    if (_refresh) {
-        [self hideRefreshButton];
-        return;
-    }
-    
-    [self showRefreshButton];
+-(void)hideButtons {
+    [UIView animateWithDuration:0.2 animations:^(void) {
+        CGRect frame = _buttons.frame;
+        frame.origin.y = -frame.size.height;
+        _buttons.frame = frame;
+    } completion:^(BOOL finished) {
+        [_buttons removeFromSuperview];
+        _buttons = nil;
+    }]; 
 }
 
 -(UIButton *)addActionButtonWithFrame:(CGRect)frame {
@@ -183,15 +219,8 @@ static const int kButtonHeight = 40;
     button.titleLabel.font = [UIFont fontWithName:@"ArialRoundedMTBold" size:18];
     button.frame = frame;
     
-    [self.view addSubview:button];
-    [self.view bringSubviewToFront:button];
-    
-    [UIView animateWithDuration:0.2 animations:^(void) {
-        CGRect frame = button.frame;
-        frame.origin.y = 0;
-        button.frame = frame;
-    }];
-    
+    [_buttons addSubview:button];
+
     return button;
 }
 
@@ -201,26 +230,15 @@ static const int kButtonHeight = 40;
 }
 
 -(void)showRefreshButton {
-    float width = self.view.bounds.size.width / 2;
-    _refresh = [self addActionButtonWithFrame:CGRectMake(width + 1,
-                                                         -kButtonHeight, 
+    const CGFloat width = [self buttonWidth];
+    UIButton* refresh = [self addActionButtonWithFrame:CGRectMake(width + 1,
+                                                         0, 
                                                          width - 2, 
                                                          kButtonHeight)];
     
-    _refresh.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin;
-    [_refresh setTitle:@"Refresh" forState:UIControlStateNormal];
-    [_refresh addTarget:self action:@selector(didTapRefreshButton:) forControlEvents:UIControlEventTouchUpInside];    
-}
-
--(void)hideRefreshButton {
-    [UIView animateWithDuration:0.2 animations:^(void) {
-        CGRect frame = _refresh.frame;
-        frame.origin.y = -frame.size.height;
-        _refresh.frame = frame;
-    } completion:^(BOOL finished) {
-        [_refresh removeFromSuperview];
-        _refresh = nil;
-    }];
+    refresh.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin;
+    [refresh setTitle:@"Refresh" forState:UIControlStateNormal];
+    [refresh addTarget:self action:@selector(didTapRefreshButton:) forControlEvents:UIControlEventTouchUpInside];    
 }
 
 -(void)didTapEmailButton:(UIButton *)button {
@@ -229,25 +247,14 @@ static const int kButtonHeight = 40;
 }
 
 -(void)showEmailButton {
-    _email = [self addActionButtonWithFrame:CGRectMake(1, 
-                                                       -kButtonHeight, 
-                                                       self.view.bounds.size.width / 2 - 2, 
+    UIButton* email = [self addActionButtonWithFrame:CGRectMake(1, 
+                                                       0, 
+                                                       [self buttonWidth] - 2, 
                                                        kButtonHeight)];
     
-    _email.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
-    [_email setTitle:@"Email" forState:UIControlStateNormal];
-    [_email addTarget:self action:@selector(didTapEmailButton:) forControlEvents:UIControlEventTouchUpInside];
-}
-
--(void)hideEmailButton {
-    [UIView animateWithDuration:0.2 animations:^(void) {
-        CGRect frame = _email.frame;
-        frame.origin.y = -frame.size.height;
-        _email.frame = frame;
-    } completion:^(BOOL finished) {
-        [_email removeFromSuperview];
-        _email = nil;
-    }];
+    email.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
+    [email setTitle:@"Email" forState:UIControlStateNormal];
+    [email addTarget:self action:@selector(didTapEmailButton:) forControlEvents:UIControlEventTouchUpInside];
 }
 
 #pragma mark
@@ -322,7 +329,7 @@ static const int kButtonHeight = 40;
 }
 
 -(void)hideLoading {
-    [UIView animateWithDuration:0.15 animations:^(void) {
+    [UIView animateWithDuration:0.2 animations:^(void) {
         _loadingView.alpha = 0;
         _logView.alpha = 1;
     } completion:^(BOOL finished) {
