@@ -40,6 +40,7 @@
 -(UIButton*)addActionButtonWithFrame:(CGRect)frame;
 -(void)showButtons;
 -(void)hideButtons;
+-(void)setImageInsetsForButton:(UIButton*)button;
 
 -(void)didTapEmailButton:(UIButton*)button;
 -(void)didTapRefreshButton:(UIButton*)button;
@@ -141,6 +142,8 @@ static const int kButtonHeight = 40;
 }
 
 -(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
+    _buttons.alpha = 0;
+
     [UIView animateWithDuration:duration animations:^(void) {
         _logView.alpha = 0; 
     }];
@@ -148,8 +151,15 @@ static const int kButtonHeight = 40;
 
 -(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
     [self sizeLogView];
+    
+    for (id button in _buttons.subviews) {
+        if (![button isKindOfClass:[UIButton class]]) continue;
+        [self setImageInsetsForButton:button];
+    }
+    
     [UIView animateWithDuration:0.25 animations:^(void) {
         _logView.alpha = 1; 
+        _buttons.alpha = 1;
     }];
 }
 
@@ -227,7 +237,7 @@ static const int kButtonHeight = 40;
                                                         self.view.bounds.size.width, 
                                                         kButtonHeight)];
     
-    _buttons.backgroundColor = [UIColor clearColor];
+    _buttons.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
     _buttons.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     _buttons.autoresizesSubviews = YES;
     [self.view addSubview:_buttons];
@@ -265,12 +275,8 @@ static const int kButtonHeight = 40;
 
 -(UIButton *)addActionButtonWithFrame:(CGRect)frame {
     UIButton* button = [UIButton buttonWithType:UIButtonTypeCustom];
-
-    button.layer.borderWidth = 1;
-    button.layer.borderColor = [UIColor colorWithWhite:1 alpha:0.75].CGColor;
-    button.layer.cornerRadius = 4;
     
-    button.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
+    button.backgroundColor = [UIColor clearColor];
     button.showsTouchWhenHighlighted = YES;
     [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [button setTitleShadowColor:[UIColor blackColor] forState:UIControlStateNormal];
@@ -293,7 +299,7 @@ static const int kButtonHeight = 40;
     const CGFloat height = MIN(rowHeight * [_logHistory count], self.view.bounds.size.height / 2);
     _historyView = [[UITableView alloc] initWithFrame:CGRectMake(0, 
                                                                  kButtonHeight, 
-                                                                 [self buttonWidth], 
+                                                                 self.view.bounds.size.width / 2, 
                                                                  height) 
                                                 style:UITableViewStylePlain];
     
@@ -302,7 +308,7 @@ static const int kButtonHeight = 40;
     _historyView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
     _historyView.separatorColor = [UIColor clearColor];
     _historyView.rowHeight = rowHeight;
-    _historyView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    _historyView.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
     _historyView.transform = CGAffineTransformMakeScale(0.01, 0.01);
     
     [_buttons addSubview:_historyView];
@@ -314,13 +320,22 @@ static const int kButtonHeight = 40;
     }];
 }
 
+-(void)setImageInsetsForButton:(UIButton *)button {
+    CGFloat hmargin = button.bounds.size.height * 0.1;
+    CGFloat vmargin = (button.bounds.size.width - button.bounds.size.height * 0.8) / 2;
+    button.imageEdgeInsets = UIEdgeInsetsMake(hmargin,vmargin,hmargin,vmargin);
+}
+
 -(void)showHistoryButton {
     UIButton* history = [self addActionButtonWithFrame:CGRectMake(1, 
                                                                 0, 
                                                                 [self buttonWidth] - 2, 
                                                                 kButtonHeight)];
     
-    [history setTitle:@"History" forState:UIControlStateNormal];
+    UIImage* icon = [UIImage imageNamed:@"history_icon"];
+    [history setImage:icon forState:UIControlStateNormal];
+    [self setImageInsetsForButton:history];
+    
     [history addTarget:self action:@selector(didTapHistoryButton:) forControlEvents:UIControlEventTouchUpInside];
 }
 
@@ -336,7 +351,10 @@ static const int kButtonHeight = 40;
                                                                   width - 2, 
                                                                   kButtonHeight)];
     
-    [refresh setTitle:@"Refresh" forState:UIControlStateNormal];
+    UIImage* icon = [UIImage imageNamed:@"refresh_icon"];
+    [refresh setImage:icon forState:UIControlStateNormal];
+    [self setImageInsetsForButton:refresh];
+    
     [refresh addTarget:self action:@selector(didTapRefreshButton:) forControlEvents:UIControlEventTouchUpInside];    
 }
 
@@ -352,7 +370,10 @@ static const int kButtonHeight = 40;
                                                                   width - 2, 
                                                                   kButtonHeight)];
     
-    [email setTitle:@"Email" forState:UIControlStateNormal];
+    UIImage* icon = [UIImage imageNamed:@"email_icon"];
+    [email setImage:icon forState:UIControlStateNormal];
+    [self setImageInsetsForButton:email];
+    
     [email addTarget:self action:@selector(didTapEmailButton:) forControlEvents:UIControlEventTouchUpInside];
 }
 
