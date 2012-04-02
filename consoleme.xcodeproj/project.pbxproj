@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		282A5B0815279F86004EF23B /* LogHistory.m in Sources */ = {isa = PBXBuildFile; fileRef = 282A5B0715279F86004EF23B /* LogHistory.m */; };
+		282A5B0C1527B73D004EF23B /* UIActionButtonView.m in Sources */ = {isa = PBXBuildFile; fileRef = 282A5B0B1527B73D004EF23B /* UIActionButtonView.m */; };
 		289AFD391523FF4A004F7B93 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 289AFD381523FF4A004F7B93 /* UIKit.framework */; };
 		289AFD3B1523FF4A004F7B93 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 289AFD3A1523FF4A004F7B93 /* Foundation.framework */; };
 		289AFD3D1523FF4A004F7B93 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 289AFD3C1523FF4A004F7B93 /* CoreGraphics.framework */; };
@@ -23,6 +25,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		282A5B0615279F86004EF23B /* LogHistory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LogHistory.h; sourceTree = "<group>"; };
+		282A5B0715279F86004EF23B /* LogHistory.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogHistory.m; sourceTree = "<group>"; };
+		282A5B0A1527B73D004EF23B /* UIActionButtonView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIActionButtonView.h; sourceTree = "<group>"; };
+		282A5B0B1527B73D004EF23B /* UIActionButtonView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIActionButtonView.m; sourceTree = "<group>"; };
 		289AFD341523FF4A004F7B93 /* consoleme.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = consoleme.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		289AFD381523FF4A004F7B93 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		289AFD3A1523FF4A004F7B93 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -96,6 +102,10 @@
 				289AFD521523FF57004F7B93 /* NLOSyslog.m */,
 				289AFD471523FF4A004F7B93 /* AppDelegate.h */,
 				289AFD481523FF4A004F7B93 /* AppDelegate.m */,
+				282A5B0615279F86004EF23B /* LogHistory.h */,
+				282A5B0715279F86004EF23B /* LogHistory.m */,
+				282A5B0A1527B73D004EF23B /* UIActionButtonView.h */,
+				282A5B0B1527B73D004EF23B /* UIActionButtonView.m */,
 				289AFD3F1523FF4A004F7B93 /* Supporting Files */,
 			);
 			path = consoleme;
@@ -186,6 +196,8 @@
 				289AFD491523FF4A004F7B93 /* AppDelegate.m in Sources */,
 				289AFD531523FF57004F7B93 /* ConsoleMeViewController.m in Sources */,
 				289AFD541523FF57004F7B93 /* NLOSyslog.m in Sources */,
+				282A5B0815279F86004EF23B /* LogHistory.m in Sources */,
+				282A5B0C1527B73D004EF23B /* UIActionButtonView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

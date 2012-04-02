@@ -20,6 +20,8 @@
 
 #import "ConsoleMeViewController.h"
 #import "NLOSyslog.h"
+#import "UIActionButtonView.h"
+
 #import <QuartzCore/QuartzCore.h>
 
 @interface ConsoleMeViewController ()
@@ -41,7 +43,10 @@
 
 -(void)didTapEmailButton:(UIButton*)button;
 -(void)didTapRefreshButton:(UIButton*)button;
+-(void)didTapHistoryButton:(UIButton*)button;
 -(void)showRefreshButton;
+-(void)showEmailButton;
+-(void)showHistoryButton;
 
 -(NSString*)email;
 -(void)displayComposerSheet;
@@ -56,10 +61,17 @@ static const int kButtonHeight = 40;
 
 @implementation ConsoleMeViewController
 
+-(void)dealloc {
+    [_logHistory release];
+    [super dealloc];
+}
+
 #pragma mark
 #pragma mark UIViewController Overrides
 
 -(void)loadView {
+    _logHistory = [[LogHistory alloc] init];
+    
     CGRect frame = [[UIScreen mainScreen] applicationFrame];
 
     UIView* baseView = [[UIView alloc] initWithFrame:frame];
@@ -121,6 +133,7 @@ static const int kButtonHeight = 40;
     _logView = nil;
     _loadingView = nil;
     _buttons = nil;
+    _historyView = nil;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -149,6 +162,42 @@ static const int kButtonHeight = 40;
 }
 
 #pragma mark
+#pragma mark UITableViewDelegate
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [self toggleButtons];
+    [self processLog:[[_logHistory logEntryAtIndex:indexPath.row] objectForKey:kLogKey]];
+}
+
+#pragma mark 
+#pragma mark UITableViewDataSource
+
+-(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return [_logHistory count];
+}
+
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+    cell.backgroundColor = [UIColor clearColor];
+}
+
+-(UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    static NSString * const kCellIdentifier = @"Cell";
+    
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kCellIdentifier];
+    if (cell == nil) {
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:kCellIdentifier] autorelease];
+        cell.accessoryType = UITableViewCellAccessoryNone;
+        cell.textLabel.textColor = [UIColor whiteColor];
+        cell.textLabel.font = [UIFont fontWithName:@"ArialRoundedMT" size:12];
+    }
+    
+    NSDictionary* item = [_logHistory logEntryAtIndex:indexPath.row];
+    cell.textLabel.text = [item objectForKey:kLogNameKey];
+    
+    return cell;
+}
+
+#pragma mark
 #pragma mark Gestures
 
 -(void)didTapLog:(UITapGestureRecognizer *)recognizer {
@@ -159,7 +208,7 @@ static const int kButtonHeight = 40;
 #pragma mark Buttons
 
 -(CGFloat)buttonWidth {
-    return self.view.bounds.size.width / 2;
+    return self.view.bounds.size.width / 3;
 }
 
 
@@ -173,17 +222,20 @@ static const int kButtonHeight = 40;
 }
 
 -(void)showButtons {
-    _buttons = [[UIView alloc] initWithFrame:CGRectMake(0, 
+    _buttons = [[UIActionButtonView alloc] initWithFrame:CGRectMake(0, 
                                                         -kButtonHeight, 
                                                         self.view.bounds.size.width, 
                                                         kButtonHeight)];
     
     _buttons.backgroundColor = [UIColor clearColor];
+    _buttons.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    _buttons.autoresizesSubviews = YES;
     [self.view addSubview:_buttons];
     [_buttons release];
     
     [self showEmailButton];
     [self showRefreshButton];
+    [self showHistoryButton];
     
     [self.view bringSubviewToFront:_buttons];
     
@@ -196,12 +248,18 @@ static const int kButtonHeight = 40;
 
 -(void)hideButtons {
     [UIView animateWithDuration:0.2 animations:^(void) {
-        CGRect frame = _buttons.frame;
-        frame.origin.y = -frame.size.height;
-        _buttons.frame = frame;
+        CGRect buttonframe = _buttons.frame;
+        buttonframe.origin.y = -buttonframe.size.height;
+        _buttons.frame = buttonframe;
+        
+        CGRect historyframe = _historyView.frame;
+        historyframe.origin.y = -historyframe.size.height;
+        _historyView.frame = historyframe;
+        _historyView.alpha = 0;
     } completion:^(BOOL finished) {
         [_buttons removeFromSuperview];
         _buttons = nil;
+        _historyView = nil;
     }]; 
 }
 
@@ -218,10 +276,52 @@ static const int kButtonHeight = 40;
     [button setTitleShadowColor:[UIColor blackColor] forState:UIControlStateNormal];
     button.titleLabel.font = [UIFont fontWithName:@"ArialRoundedMTBold" size:18];
     button.frame = frame;
+    button.autoresizingMask = UIViewAutoresizingFlexibleWidth | 
+        UIViewAutoresizingFlexibleRightMargin | 
+        UIViewAutoresizingFlexibleLeftMargin;
+
     
     [_buttons addSubview:button];
 
     return button;
+}
+
+-(void)didTapHistoryButton:(UIButton*)button {
+    if (_historyView) return;
+    
+    const CGFloat rowHeight = 40;
+    const CGFloat height = MIN(rowHeight * [_logHistory count], self.view.bounds.size.height / 2);
+    _historyView = [[UITableView alloc] initWithFrame:CGRectMake(0, 
+                                                                 kButtonHeight, 
+                                                                 [self buttonWidth], 
+                                                                 height) 
+                                                style:UITableViewStylePlain];
+    
+    _historyView.delegate = self;
+    _historyView.dataSource = self;
+    _historyView.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
+    _historyView.separatorColor = [UIColor clearColor];
+    _historyView.rowHeight = rowHeight;
+    _historyView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin;
+    _historyView.transform = CGAffineTransformMakeScale(0.01, 0.01);
+    
+    [_buttons addSubview:_historyView];
+    [_buttons bringSubviewToFront:_historyView];
+    [_historyView release];
+    
+    [UIView animateWithDuration:0.2 animations:^(void) {
+        _historyView.transform = CGAffineTransformIdentity;
+    }];
+}
+
+-(void)showHistoryButton {
+    UIButton* history = [self addActionButtonWithFrame:CGRectMake(1, 
+                                                                0, 
+                                                                [self buttonWidth] - 2, 
+                                                                kButtonHeight)];
+    
+    [history setTitle:@"History" forState:UIControlStateNormal];
+    [history addTarget:self action:@selector(didTapHistoryButton:) forControlEvents:UIControlEventTouchUpInside];
 }
 
 -(void)didTapRefreshButton:(UIButton*)button {
@@ -231,12 +331,11 @@ static const int kButtonHeight = 40;
 
 -(void)showRefreshButton {
     const CGFloat width = [self buttonWidth];
-    UIButton* refresh = [self addActionButtonWithFrame:CGRectMake(width + 1,
-                                                         0, 
-                                                         width - 2, 
-                                                         kButtonHeight)];
+    UIButton* refresh = [self addActionButtonWithFrame:CGRectMake(width * 2 + 1, 
+                                                                  0, 
+                                                                  width - 2, 
+                                                                  kButtonHeight)];
     
-    refresh.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin;
     [refresh setTitle:@"Refresh" forState:UIControlStateNormal];
     [refresh addTarget:self action:@selector(didTapRefreshButton:) forControlEvents:UIControlEventTouchUpInside];    
 }
@@ -247,12 +346,12 @@ static const int kButtonHeight = 40;
 }
 
 -(void)showEmailButton {
-    UIButton* email = [self addActionButtonWithFrame:CGRectMake(1, 
-                                                       0, 
-                                                       [self buttonWidth] - 2, 
-                                                       kButtonHeight)];
+    const CGFloat width = [self buttonWidth];
+    UIButton* email = [self addActionButtonWithFrame:CGRectMake(width + 1,
+                                                                  0, 
+                                                                  width - 2, 
+                                                                  kButtonHeight)];
     
-    email.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleRightMargin;
     [email setTitle:@"Email" forState:UIControlStateNormal];
     [email addTarget:self action:@selector(didTapEmailButton:) forControlEvents:UIControlEventTouchUpInside];
 }
@@ -266,6 +365,7 @@ static const int kButtonHeight = 40;
     [[[NLOSyslog syslog] 
       filterSecondsFromNow:60 * kMaxMinutes] 
      sendFormattedLogToBlock:^(NSArray* log) {
+         [_logHistory addLog:log withName:[[NSDate date] description]];
          [self processLog:log];
      }];    
 }
