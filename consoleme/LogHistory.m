@@ -26,6 +26,9 @@ const int kMaxEntries = 3;
 
 -(id)init {
     if ((self = [super init])) {
+        // TODO do something better with this, as it may not be a great idea to load the logs
+        // in init if they're big
+        //
         [self load];
         if (!_logs) {
             _logs = [[NSMutableArray alloc] initWithCapacity:3];
@@ -48,6 +51,8 @@ const int kMaxEntries = 3;
 }
 
 -(void)persist {
+    // Quick and easy disk storage
+    //
     [[NSUserDefaults standardUserDefaults] setValue:_logs forKey:kPersistKey];
 }
 
