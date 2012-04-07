@@ -32,6 +32,7 @@
 -(void)sizeLogView;
 -(void)updateLog;
 -(void)processLog:(NSArray*)log;
+-(NSString *)timestampForLogEntry;
 
 -(void)didTapLog:(UITapGestureRecognizer*)recognizer;
 
@@ -380,13 +381,21 @@ static const int kButtonHeight = 40;
 #pragma mark
 #pragma mark Log
 
+-(NSString *)timestampForLogEntry {
+    NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
+    [dateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
+    [dateFormatter setTimeZone:[NSTimeZone localTimeZone]];
+    
+    return [dateFormatter stringFromDate:[NSDate date]];
+}
+
 -(void)updateLog {
     [self showLoading];
 
     [[[NLOSyslog syslog] 
       filterSecondsFromNow:60 * kMaxMinutes] 
      sendFormattedLogToBlock:^(NSArray* log) {
-         [_logHistory addLog:log withName:[[NSDate date] description]];
+         [_logHistory addLog:log withName:[self timestampForLogEntry]];
          [self processLog:log];
      }];    
 }
