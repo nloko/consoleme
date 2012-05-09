@@ -63,6 +63,14 @@ static const int kButtonHeight = 40;
 
 @implementation ConsoleMeViewController
 
+-(id)init {
+    if ((self = [super init])) {
+        _logHistory = [[LogHistory alloc] init];
+    }
+    
+    return self;
+}
+
 -(void)dealloc {
     [_logHistory release];
     [super dealloc];
@@ -71,9 +79,7 @@ static const int kButtonHeight = 40;
 #pragma mark
 #pragma mark UIViewController Overrides
 
--(void)loadView {
-    _logHistory = [[LogHistory alloc] init];
-    
+-(void)loadView {    
     CGRect frame = [[UIScreen mainScreen] applicationFrame];
 
     UIView* baseView = [[UIView alloc] initWithFrame:frame];
