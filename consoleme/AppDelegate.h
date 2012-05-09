@@ -3,7 +3,7 @@
 //  consoleme
 //
 //  Created by Neil Loknath on 12-03-28.
-//  Copyright (c) 2012 Neil Loknath. All rights reserved.
+//  Copyright (c) 2012 Neil Loknath <neil.loknath@gmail.com>. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
