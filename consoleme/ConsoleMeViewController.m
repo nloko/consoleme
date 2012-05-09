@@ -57,8 +57,8 @@
 
 @end
 
-static const int kMaxMinutes = 30;  // default to 30 min
-static const int kMaxLines = 125;   // number through trial and error that allows the simulator to behave
+static const int kMaxMinutes = 120;  // default to 2 hours
+static const int kMaxLines = INT32_MAX;   
 static const int kButtonHeight = 40;
 
 @implementation ConsoleMeViewController
@@ -87,28 +87,11 @@ static const int kButtonHeight = 40;
     
     self.view = baseView;
     [baseView release];
-    
-    _contentView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
-    _contentView.contentSize = frame.size;
-    _contentView.backgroundColor = [UIColor blackColor];
-    _contentView.autoresizingMask = UIViewAutoresizingFlexibleWidth | 
-        UIViewAutoresizingFlexibleHeight | 
-        UIViewAutoresizingFlexibleBottomMargin | 
-        UIViewAutoresizingFlexibleTopMargin | 
-        UIViewAutoresizingFlexibleLeftMargin |
-        UIViewAutoresizingFlexibleRightMargin;
-    
-    _contentView.showsHorizontalScrollIndicator = NO;
-    _contentView.autoresizesSubviews = YES;
-
-    [self.view addSubview:_contentView];
-    [_contentView release];
         
-    _logView= [[UILabel alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
+    _logView= [[UITextView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
     _logView.backgroundColor = [UIColor blackColor];
     _logView.textColor = [UIColor lightGrayColor];
-    _logView.lineBreakMode = UILineBreakModeWordWrap;
-    _logView.numberOfLines = 0;
+    _logView.editable = NO;
     _logView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     _logView.font = [UIFont fontWithName:@"Courier" size:12];
     _logView.userInteractionEnabled = YES;
@@ -117,7 +100,7 @@ static const int kButtonHeight = 40;
     [_logView addGestureRecognizer:tapper];
     [tapper release];
     
-    [_contentView addSubview:_logView];
+    [self.view addSubview:_logView];
     [_logView release];
     
     [self updateLog];
@@ -131,7 +114,6 @@ static const int kButtonHeight = 40;
 -(void)viewDidUnload {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     
-    _contentView = nil;
     _logView = nil;
     _loadingView = nil;
     _buttons = nil;
@@ -150,9 +132,7 @@ static const int kButtonHeight = 40;
     }];
 }
 
--(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
-    [self sizeLogView];
-    
+-(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {    
     for (id button in _buttons.subviews) {
         if (![button isKindOfClass:[UIButton class]]) continue;
         [self setImageInsetsForButton:button];
@@ -431,9 +411,7 @@ static const int kButtonHeight = 40;
     [_logView sizeToFit];
     CGRect frame = _logView.frame;
     frame.size.width = self.view.bounds.size.width;
-    _logView.frame = frame;
-    
-    _contentView.contentSize = _logView.bounds.size;
+    _logView.frame = frame;    
 }
 
 -(void)showLoading {

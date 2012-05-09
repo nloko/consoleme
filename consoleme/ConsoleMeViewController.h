@@ -28,8 +28,7 @@
     UITableViewDataSource> {
 @private
     UIActivityIndicatorView* _loadingView;
-    UIScrollView* _contentView;
-    UILabel* _logView;
+    UITextView* _logView;
     
     UIView* _buttons;
     UITableView* _historyView;
