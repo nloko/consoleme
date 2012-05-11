@@ -8,6 +8,15 @@
 
 #import <UIKit/UIKit.h>
 
-@interface UIActionButtonView : UIView
+@protocol UIActionButtonViewDelegate;
+
+@interface UIActionButtonView : UIView {
+ @private
+    id<UIActionButtonViewDelegate> _delegate;
+}
+
+-(void)adjustButtonImages;
+
+@property (nonatomic, assign) id<UIActionButtonViewDelegate> delegate;
 
 @end

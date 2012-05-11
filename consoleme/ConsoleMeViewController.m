@@ -20,12 +20,15 @@
 
 #import "ConsoleMeViewController.h"
 #import "NLOSyslog.h"
-#import "UIActionButtonView.h"
 
 #import <QuartzCore/QuartzCore.h>
 
+static const int kButtonHeight = 40;
+
 @interface ConsoleMeViewController ()
 
+-(void)toggleButtons;
+-(void)hideButtons;
 -(void)showLoading;
 -(void)hideLoading;
 -(void)setLogViewText:(NSString*)text;
@@ -36,20 +39,6 @@
 
 -(void)didTapLog:(UITapGestureRecognizer*)recognizer;
 
--(CGFloat)buttonWidth;
--(void)toggleButtons;
--(UIButton*)addActionButtonWithFrame:(CGRect)frame;
--(void)showButtons;
--(void)hideButtons;
--(void)setImageInsetsForButton:(UIButton*)button;
-
--(void)didTapEmailButton:(UIButton*)button;
--(void)didTapRefreshButton:(UIButton*)button;
--(void)didTapHistoryButton:(UIButton*)button;
--(void)showRefreshButton;
--(void)showEmailButton;
--(void)showHistoryButton;
-
 -(NSString*)email;
 -(void)displayComposerSheet;
 
@@ -59,17 +48,8 @@
 
 static const int kMaxMinutes = 120;  // default to 2 hours
 static const int kMaxLines = INT32_MAX;   
-static const int kButtonHeight = 40;
 
 @implementation ConsoleMeViewController
-
--(id)init {
-    if ((self = [super init])) {
-        _logHistory = [[LogHistory alloc] init];
-    }
-    
-    return self;
-}
 
 -(void)dealloc {
     [_logHistory release];
@@ -80,6 +60,11 @@ static const int kButtonHeight = 40;
 #pragma mark UIViewController Overrides
 
 -(void)loadView {    
+    if (!_logHistory) {
+        _logHistory = [[LogHistory alloc] init];
+        [_logHistory loadPersistedLog];
+    }
+    
     CGRect frame = [[UIScreen mainScreen] applicationFrame];
 
     UIView* baseView = [[UIView alloc] initWithFrame:frame];
@@ -94,15 +79,22 @@ static const int kButtonHeight = 40;
     self.view = baseView;
     [baseView release];
         
-    _logView= [[UITextView alloc] initWithFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
+    _logView= [[UITextView alloc] initWithFrame:CGRectMake(0, 
+                                                           0, 
+                                                           frame.size.width, 
+                                                           frame.size.height)];
     _logView.backgroundColor = [UIColor blackColor];
     _logView.textColor = [UIColor lightGrayColor];
     _logView.editable = NO;
-    _logView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    
+    _logView.autoresizingMask = UIViewAutoresizingFlexibleWidth | 
+        UIViewAutoresizingFlexibleHeight;
+    
     _logView.font = [UIFont fontWithName:@"Courier" size:12];
     _logView.userInteractionEnabled = YES;
     
-    UITapGestureRecognizer* tapper = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didTapLog:)];
+    UITapGestureRecognizer* tapper = [[UITapGestureRecognizer alloc] initWithTarget:self 
+                                                                             action:@selector(didTapLog:)];
     [_logView addGestureRecognizer:tapper];
     [tapper release];
     
@@ -130,7 +122,8 @@ static const int kButtonHeight = 40;
     return YES;
 }
 
--(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
+-(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation 
+                               duration:(NSTimeInterval)duration {
     _buttons.alpha = 0;
 
     [UIView animateWithDuration:duration animations:^(void) {
@@ -139,10 +132,7 @@ static const int kButtonHeight = 40;
 }
 
 -(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {    
-    for (id button in _buttons.subviews) {
-        if (![button isKindOfClass:[UIButton class]]) continue;
-        [self setImageInsetsForButton:button];
-    }
+    [_buttons adjustButtonImages];
     
     [UIView animateWithDuration:0.25 animations:^(void) {
         _logView.alpha = 1; 
@@ -173,7 +163,8 @@ static const int kButtonHeight = 40;
     return [_logHistory count];
 }
 
--(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+-(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell 
+                                        forRowAtIndexPath:(NSIndexPath *)indexPath {
     cell.backgroundColor = [UIColor clearColor];
 }
 
@@ -182,7 +173,9 @@ static const int kButtonHeight = 40;
     
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:kCellIdentifier];
     if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:kCellIdentifier] autorelease];
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault 
+                                       reuseIdentifier:kCellIdentifier] autorelease];
+        
         cell.accessoryType = UITableViewCellAccessoryNone;
         cell.textLabel.textColor = [UIColor whiteColor];
         cell.textLabel.font = [UIFont fontWithName:@"ArialRoundedMT" size:12];
@@ -204,11 +197,6 @@ static const int kButtonHeight = 40;
 #pragma mark
 #pragma mark Buttons
 
--(CGFloat)buttonWidth {
-    return self.view.bounds.size.width / 3;
-}
-
-
 -(void)toggleButtons {
     if (_buttons) {
         [self hideButtons];
@@ -227,12 +215,10 @@ static const int kButtonHeight = 40;
     _buttons.backgroundColor = [UIColor colorWithRed:0 green:0 blue:0 alpha:0.5];
     _buttons.autoresizingMask = UIViewAutoresizingFlexibleWidth;
     _buttons.autoresizesSubviews = YES;
+    _buttons.delegate = self;
+    
     [self.view addSubview:_buttons];
     [_buttons release];
-    
-    [self showEmailButton];
-    [self showRefreshButton];
-    [self showHistoryButton];
     
     [self.view bringSubviewToFront:_buttons];
     
@@ -258,25 +244,6 @@ static const int kButtonHeight = 40;
         _buttons = nil;
         _historyView = nil;
     }]; 
-}
-
--(UIButton *)addActionButtonWithFrame:(CGRect)frame {
-    UIButton* button = [UIButton buttonWithType:UIButtonTypeCustom];
-    
-    button.backgroundColor = [UIColor clearColor];
-    button.showsTouchWhenHighlighted = YES;
-    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [button setTitleShadowColor:[UIColor blackColor] forState:UIControlStateNormal];
-    button.titleLabel.font = [UIFont fontWithName:@"ArialRoundedMTBold" size:18];
-    button.frame = frame;
-    button.autoresizingMask = UIViewAutoresizingFlexibleWidth | 
-        UIViewAutoresizingFlexibleRightMargin | 
-        UIViewAutoresizingFlexibleLeftMargin;
-
-    
-    [_buttons addSubview:button];
-
-    return button;
 }
 
 -(void)didTapHistoryButton:(UIButton*)button {
@@ -307,61 +274,14 @@ static const int kButtonHeight = 40;
     }];
 }
 
--(void)setImageInsetsForButton:(UIButton *)button {
-    CGFloat hmargin = button.bounds.size.height * 0.1;
-    CGFloat vmargin = (button.bounds.size.width - button.bounds.size.height * 0.8) / 2;
-    button.imageEdgeInsets = UIEdgeInsetsMake(hmargin,vmargin,hmargin,vmargin);
-}
-
--(void)showHistoryButton {
-    UIButton* history = [self addActionButtonWithFrame:CGRectMake(1, 
-                                                                0, 
-                                                                [self buttonWidth] - 2, 
-                                                                kButtonHeight)];
-    
-    UIImage* icon = [UIImage imageNamed:@"history_icon"];
-    [history setImage:icon forState:UIControlStateNormal];
-    [self setImageInsetsForButton:history];
-    
-    [history addTarget:self action:@selector(didTapHistoryButton:) forControlEvents:UIControlEventTouchUpInside];
-}
-
 -(void)didTapRefreshButton:(UIButton*)button {
     [self toggleButtons];
     [self updateLog];
 }
 
--(void)showRefreshButton {
-    const CGFloat width = [self buttonWidth];
-    UIButton* refresh = [self addActionButtonWithFrame:CGRectMake(width * 2 + 1, 
-                                                                  0, 
-                                                                  width - 2, 
-                                                                  kButtonHeight)];
-    
-    UIImage* icon = [UIImage imageNamed:@"refresh_icon"];
-    [refresh setImage:icon forState:UIControlStateNormal];
-    [self setImageInsetsForButton:refresh];
-    
-    [refresh addTarget:self action:@selector(didTapRefreshButton:) forControlEvents:UIControlEventTouchUpInside];    
-}
-
 -(void)didTapEmailButton:(UIButton *)button {
     [self toggleButtons];
     [self displayComposerSheet];
-}
-
--(void)showEmailButton {
-    const CGFloat width = [self buttonWidth];
-    UIButton* email = [self addActionButtonWithFrame:CGRectMake(width + 1,
-                                                                  0, 
-                                                                  width - 2, 
-                                                                  kButtonHeight)];
-    
-    UIImage* icon = [UIImage imageNamed:@"email_icon"];
-    [email setImage:icon forState:UIControlStateNormal];
-    [self setImageInsetsForButton:email];
-    
-    [email addTarget:self action:@selector(didTapEmailButton:) forControlEvents:UIControlEventTouchUpInside];
 }
 
 #pragma mark
@@ -389,9 +309,6 @@ static const int kButtonHeight = 40;
 -(void)processLog:(NSArray *)log {
     NSMutableString* logString = [[NSMutableString alloc] init];
     
-    // Simulator goes bonkers if we add too many lines to the view
-    // Adjust the lower bound so we truncate older entries
-    //
     const int numberOfEntries = [log count];
     int start = MAX(0, numberOfEntries - kMaxLines);
     

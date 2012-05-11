@@ -22,15 +22,18 @@
 #import <MessageUI/MessageUI.h>
 
 #import "LogHistory.h"
+#import "UIActionButtonView.h"
+#import "UIActionButtonViewDelegate.h"
 
 @interface ConsoleMeViewController : UIViewController <MFMailComposeViewControllerDelegate,
+    UIActionButtonViewDelegate,
     UITableViewDelegate,
     UITableViewDataSource> {
 @private
     UIActivityIndicatorView* _loadingView;
     UITextView* _logView;
     
-    UIView* _buttons;
+    UIActionButtonView* _buttons;
     UITableView* _historyView;
     
     LogHistory* _logHistory;

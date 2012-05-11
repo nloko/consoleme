@@ -18,35 +18,21 @@ const int kMaxEntries = 3;
 @interface LogHistory()
 
 -(void)persist;
--(void)load;
 
 @end
 
 @implementation LogHistory
-
--(id)init {
-    if ((self = [super init])) {
-        // TODO do something better with this, as it may not be a great idea to load the logs
-        // in init if they're big
-        //
-        [self load];
-        if (!_logs) {
-            _logs = [[NSMutableArray alloc] initWithCapacity:3];
-        }
-    }
-    
-    return self;
-}
 
 -(void)dealloc {
     [_logs release];
     [super dealloc];
 }
 
--(void)load {
+-(void)loadPersistedLog {
     NSArray* logs = [[NSUserDefaults standardUserDefaults] objectForKey:kPersistKey];
     if (!logs) return;
     
+    [_logs release];
     _logs = [[NSMutableArray alloc] initWithArray:logs];
 }
 
@@ -57,8 +43,12 @@ const int kMaxEntries = 3;
 }
 
 -(void)addLog:(NSArray *)log withName:(NSString *)name {
-    if ([_logs count] == 3) {
+    if ([_logs count] == kMaxEntries) {
         [_logs removeObjectAtIndex:0];
+    }
+    
+    if (!_logs) {
+        _logs = [[NSMutableArray alloc] initWithCapacity:kMaxEntries];
     }
     
     NSMutableDictionary* entry = [NSMutableDictionary dictionary];

@@ -16,6 +16,7 @@ extern NSString * const kLogKey;
     NSMutableArray* _logs;
 }
 
+-(void)loadPersistedLog;
 -(void)addLog:(NSArray*)log withName:(NSString*)name;
 -(NSDictionary*)logEntryAtIndex:(int)index;
 -(int)count;

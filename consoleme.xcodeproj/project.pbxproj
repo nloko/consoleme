@@ -41,6 +41,7 @@
 		282A5B1F152954D0004EF23B /* history_icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "history_icon@2x.png"; path = "artwork/history_icon@2x.png"; sourceTree = SOURCE_ROOT; };
 		282A5B24152954F7004EF23B /* refresh_icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = refresh_icon.png; path = artwork/refresh_icon.png; sourceTree = SOURCE_ROOT; };
 		282A5B25152954F7004EF23B /* refresh_icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "refresh_icon@2x.png"; path = "artwork/refresh_icon@2x.png"; sourceTree = SOURCE_ROOT; };
+		2833B6C1155CAF930082518A /* UIActionButtonViewDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UIActionButtonViewDelegate.h; sourceTree = "<group>"; };
 		289AFD341523FF4A004F7B93 /* consoleme.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = consoleme.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		289AFD381523FF4A004F7B93 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		289AFD3A1523FF4A004F7B93 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -118,6 +119,7 @@
 				282A5B0715279F86004EF23B /* LogHistory.m */,
 				282A5B0A1527B73D004EF23B /* UIActionButtonView.h */,
 				282A5B0B1527B73D004EF23B /* UIActionButtonView.m */,
+				2833B6C1155CAF930082518A /* UIActionButtonViewDelegate.h */,
 				289AFD3F1523FF4A004F7B93 /* Supporting Files */,
 			);
 			path = consoleme;
